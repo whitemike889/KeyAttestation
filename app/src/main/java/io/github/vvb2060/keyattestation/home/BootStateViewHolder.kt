@@ -6,11 +6,13 @@ import androidx.core.view.isVisible
 import io.github.vvb2060.keyattestation.R
 import io.github.vvb2060.keyattestation.attestation.Attestation
 import io.github.vvb2060.keyattestation.attestation.AttestationResult
+import io.github.vvb2060.keyattestation.attestation.RootOfTrust
 import io.github.vvb2060.keyattestation.databinding.HomeHeaderBinding
 import rikka.core.res.resolveColor
 import rikka.recyclerview.BaseViewHolder.Creator
 
-class BootStateViewHolder(itemView: View, binding: HomeHeaderBinding) : HomeViewHolder<AttestationResult, HomeHeaderBinding>(itemView, binding) {
+class BootStateViewHolder(itemView: View, binding: HomeHeaderBinding) :
+    HomeViewHolder<AttestationResult, HomeHeaderBinding>(itemView, binding) {
 
     companion object {
 
@@ -25,6 +27,8 @@ class BootStateViewHolder(itemView: View, binding: HomeHeaderBinding) : HomeView
 
         val attestation = data.attestation
         val locked = attestation.teeEnforced?.rootOfTrust?.isDeviceLocked
+        val selfSigned =
+            attestation.teeEnforced?.rootOfTrust?.verifiedBootState == RootOfTrust.KM_VERIFIED_BOOT_SELF_SIGNED
 
         val titleRes: Int
         val summaryRes: Int
@@ -33,7 +37,8 @@ class BootStateViewHolder(itemView: View, binding: HomeHeaderBinding) : HomeView
 
         if (locked == null) {
             titleRes = R.string.bootloader_unknown
-            summaryRes = if (attestation.attestationSecurityLevel == Attestation.KM_SECURITY_LEVEL_SOFTWARE) R.string.bootloader_unknown_summary_software_attestation else 0
+            summaryRes =
+                if (attestation.attestationSecurityLevel == Attestation.KM_SECURITY_LEVEL_SOFTWARE) R.string.bootloader_unknown_summary_software_attestation else 0
             iconRes = R.drawable.ic_boot_unknown_24
             colorAttrRes = rikka.material.R.attr.colorInactive
         } else if (!locked) {
@@ -41,6 +46,11 @@ class BootStateViewHolder(itemView: View, binding: HomeHeaderBinding) : HomeView
             summaryRes = 0
             iconRes = R.drawable.ic_boot_unlocked_24
             colorAttrRes = rikka.material.R.attr.colorWarning
+        } else if (selfSigned) {
+            titleRes = R.string.bootloader_locked
+            summaryRes = R.string.root_of_trust_set_by_user
+            iconRes = R.drawable.ic_boot_locked_24
+            colorAttrRes = rikka.material.R.attr.colorInactive
         } else {
             titleRes = R.string.bootloader_locked
             summaryRes = 0
